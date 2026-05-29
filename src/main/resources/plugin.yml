@@ -1,0 +1,8 @@
+name: FloatTrial
+version: '${version}'
+description: FloatTrial Plugin
+author: qmftm
+
+main: me.qmftm.floatTrial.floatTrial
+api-version: '26.1.2'
+load: POSTWORLD
