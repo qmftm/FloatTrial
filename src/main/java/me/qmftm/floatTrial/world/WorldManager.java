@@ -2,7 +2,6 @@ package me.qmftm.floatTrial.world;
 
 import me.qmftm.floatTrial.floatTrial;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
@@ -48,7 +47,7 @@ public class WorldManager {
     }
 
     private void applyGameRules(World world) {
-        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        world.setSpawnFlags(false, false);
     }
 
     private boolean hasResourceWorld(String worldName) {
