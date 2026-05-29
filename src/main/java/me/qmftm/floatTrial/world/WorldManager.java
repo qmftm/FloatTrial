@@ -4,6 +4,7 @@ import me.qmftm.floatTrial.floatTrial;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,13 +28,58 @@ public class WorldManager {
     }
 
     public World loadGameWorld(String worldName) {
+        if (hasResourceWorld(worldName)) {
+            return resetAndLoad(worldName);
+        }
+
         World world = Bukkit.getWorld(worldName);
         if (world != null) return world;
+        return new WorldCreator(worldName).createWorld();
+    }
+
+    private boolean hasResourceWorld(String worldName) {
+        String prefix = "worlds/" + worldName + "/";
+        try {
+            URL codeSource = plugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+            File jarFile = new File(codeSource.toURI());
+
+            if (jarFile.getName().endsWith(".jar")) {
+                try (JarFile jar = new JarFile(jarFile)) {
+                    Enumeration<JarEntry> entries = jar.entries();
+                    while (entries.hasMoreElements()) {
+                        JarEntry entry = entries.nextElement();
+                        if (entry.getName().startsWith(prefix) && !entry.getName().equals(prefix)) {
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                URL url = plugin.getClass().getClassLoader().getResource(prefix);
+                return url != null;
+            }
+        } catch (IOException | URISyntaxException e) {
+            plugin.getLogger().warning("리소스 월드 확인 실패: " + e.getMessage());
+        }
+        return false;
+    }
+
+    private World resetAndLoad(String worldName) {
+        World existing = Bukkit.getWorld(worldName);
+        if (existing != null) {
+            World lobby = Bukkit.getWorlds().get(0);
+            for (Player player : existing.getPlayers()) {
+                player.teleport(lobby.getSpawnLocation());
+            }
+            Bukkit.unloadWorld(existing, false);
+        }
 
         File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
-        if (!worldFolder.exists()) {
-            copyFromResources(worldName, worldFolder);
+        if (worldFolder.exists()) {
+            deleteFolder(worldFolder);
         }
+
+        copyFromResources(worldName, worldFolder);
+        plugin.getLogger().info("월드 '" + worldName + "'를 리소스에서 복사했습니다.");
 
         return new WorldCreator(worldName).createWorld();
     }
@@ -51,13 +97,10 @@ public class WorldManager {
 
             try (JarFile jar = new JarFile(jarFile)) {
                 Enumeration<JarEntry> entries = jar.entries();
-                boolean found = false;
-
                 while (entries.hasMoreElements()) {
                     JarEntry entry = entries.nextElement();
                     String name = entry.getName();
                     if (!name.startsWith(prefix) || name.equals(prefix)) continue;
-                    found = true;
 
                     File out = new File(destination, name.substring(prefix.length()));
                     if (entry.isDirectory()) {
@@ -68,10 +111,6 @@ public class WorldManager {
                     try (InputStream in = jar.getInputStream(entry)) {
                         Files.copy(in, out.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     }
-                }
-
-                if (found) {
-                    plugin.getLogger().info("월드 '" + worldName + "'를 리소스에서 복사했습니다.");
                 }
             }
         } catch (IOException | URISyntaxException e) {
@@ -102,5 +141,19 @@ public class WorldManager {
         } catch (IOException | URISyntaxException e) {
             plugin.getLogger().warning("클래스패스 월드 복사 실패: " + e.getMessage());
         }
+    }
+
+    private void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteFolder(file);
+                } else {
+                    file.delete();
+                }
+            }
+        }
+        folder.delete();
     }
 }
