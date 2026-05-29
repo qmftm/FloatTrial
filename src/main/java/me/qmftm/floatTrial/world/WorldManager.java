@@ -2,6 +2,7 @@ package me.qmftm.floatTrial.world;
 
 import me.qmftm.floatTrial.floatTrial;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
@@ -41,7 +42,13 @@ public class WorldManager {
         if (!worldFolder.exists()) {
             creator.type(WorldType.FLAT);
         }
-        return creator.createWorld();
+        World loaded = creator.createWorld();
+        if (loaded != null) applyGameRules(loaded);
+        return loaded;
+    }
+
+    private void applyGameRules(World world) {
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
     }
 
     private boolean hasResourceWorld(String worldName) {
@@ -88,7 +95,9 @@ public class WorldManager {
         copyFromResources(worldName, worldFolder);
         plugin.getLogger().info("월드 '" + worldName + "'를 리소스에서 복사했습니다.");
 
-        return new WorldCreator(worldName).createWorld();
+        World loaded = new WorldCreator(worldName).createWorld();
+        if (loaded != null) applyGameRules(loaded);
+        return loaded;
     }
 
     private void copyFromResources(String worldName, File destination) {
