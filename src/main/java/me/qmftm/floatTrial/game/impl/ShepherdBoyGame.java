@@ -2,6 +2,7 @@ package me.qmftm.floatTrial.game.impl;
 
 import me.qmftm.floatTrial.game.Game;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -17,6 +18,11 @@ public class ShepherdBoyGame extends Game {
     @Override
     public String getDisplayName() {
         return "양치기 소년";
+    }
+
+    @Override
+    public Material getIcon() {
+        return Material.WHEAT;
     }
 
     @Override

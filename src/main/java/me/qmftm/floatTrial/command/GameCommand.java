@@ -2,6 +2,7 @@ package me.qmftm.floatTrial.command;
 
 import me.qmftm.floatTrial.game.Game;
 import me.qmftm.floatTrial.game.GameManager;
+import me.qmftm.floatTrial.gui.GameSelectGui;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,15 +17,21 @@ import java.util.stream.Collectors;
 public class GameCommand implements CommandExecutor, TabCompleter {
 
     private final GameManager manager;
+    private final GameSelectGui gui;
 
-    public GameCommand(GameManager manager) {
+    public GameCommand(GameManager manager, GameSelectGui gui) {
         this.manager = manager;
+        this.gui = gui;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sendHelp(sender);
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("§c플레이어만 사용할 수 있습니다.");
+                return true;
+            }
+            gui.open(player);
             return true;
         }
 
@@ -42,8 +49,7 @@ public class GameCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("§c존재하지 않는 게임입니다: §e" + args[1]);
                     return true;
                 }
-                List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-                manager.start(args[1], players);
+                manager.start(args[1], new ArrayList<>(Bukkit.getOnlinePlayers()));
             }
             case "stop" -> {
                 if (manager.getCurrentGame() == null || !manager.getCurrentGame().isRunning()) {
@@ -81,7 +87,8 @@ public class GameCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage("§6[FloatTrial] §f/ft start <게임> §7- 게임 시작");
+        sender.sendMessage("§6[FloatTrial] §f/ft §7- 게임 선택 GUI 열기");
+        sender.sendMessage("§6[FloatTrial] §f/ft start <게임> §7- 게임 바로 시작");
         sender.sendMessage("§6[FloatTrial] §f/ft stop §7- 게임 종료");
         sender.sendMessage("§6[FloatTrial] §f/ft list §7- 게임 목록");
     }

@@ -2,6 +2,7 @@ package me.qmftm.floatTrial.game.impl;
 
 import me.qmftm.floatTrial.game.Game;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -17,6 +18,11 @@ public class DeathNoteGame extends Game {
     @Override
     public String getDisplayName() {
         return "데스노트";
+    }
+
+    @Override
+    public Material getIcon() {
+        return Material.WRITTEN_BOOK;
     }
 
     @Override

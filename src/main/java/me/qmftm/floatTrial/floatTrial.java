@@ -4,6 +4,7 @@ import me.qmftm.floatTrial.command.GameCommand;
 import me.qmftm.floatTrial.game.GameManager;
 import me.qmftm.floatTrial.game.impl.DeathNoteGame;
 import me.qmftm.floatTrial.game.impl.ShepherdBoyGame;
+import me.qmftm.floatTrial.gui.GameSelectGui;
 import me.qmftm.floatTrial.world.WorldManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,7 +22,10 @@ public final class floatTrial extends JavaPlugin {
         gameManager.register(new ShepherdBoyGame());
         gameManager.register(new DeathNoteGame());
 
-        GameCommand gameCommand = new GameCommand(gameManager);
+        GameSelectGui gui = new GameSelectGui(gameManager);
+        getServer().getPluginManager().registerEvents(gui, this);
+
+        GameCommand gameCommand = new GameCommand(gameManager, gui);
         var ftCmd = java.util.Objects.requireNonNull(getCommand("ft"));
         ftCmd.setExecutor(gameCommand);
         ftCmd.setTabCompleter(gameCommand);
