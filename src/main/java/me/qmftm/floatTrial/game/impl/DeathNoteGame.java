@@ -113,12 +113,12 @@ public class DeathNoteGame extends Game implements Listener {
 
     private List<Role> buildRoleList(int count) {
         List<Role> list = new ArrayList<>(List.of(Role.KIRA));
-        if (count >= 3) list.add(Role.L);
-        if (count >= 4) list.add(Role.KIRA_FOLLOWER);
-        if (count >= 5) list.add(Role.POLICE);
-        if (count >= 6) list.add(Role.DETECTIVE);
-        if (count >= 7) list.add(Role.REPORTER);
-        if (count >= 8) list.add(Role.LOVER);
+        if (count >= 3)  list.add(Role.L);
+        if (count >= 4)  list.add(Role.POLICE);        // 4~5명
+        if (count >= 6)  list.add(Role.KIRA_FOLLOWER); // 6~7명
+        if (count >= 8)  list.add(Role.DETECTIVE);     // 8~9명
+        if (count >= 10) list.add(Role.REPORTER);      // 10~11명
+        if (count >= 12) list.add(Role.LOVER);         // 12명+
         while (list.size() < count) list.add(Role.CITIZEN);
         return list;
     }
@@ -233,9 +233,9 @@ public class DeathNoteGame extends Game implements Listener {
             switch (dnp.getRole()) {
                 case L             -> p.sendMessage(Component.text("/dn <닉네임>  →  본명 조사", NamedTextColor.AQUA));
                 case POLICE        -> p.sendMessage(Component.text("/dn <닉네임>  →  본명 한 글자 조사", NamedTextColor.AQUA));
-                case DETECTIVE     -> p.sendMessage(Component.text("/dn <닉네임>  →  직업 조사", NamedTextColor.AQUA));
+                case DETECTIVE     -> p.sendMessage(Component.text("/dn <닉네임> <본명>  →  직업 조사 (본명 일치 시)", NamedTextColor.AQUA));
                 case KIRA_FOLLOWER -> p.sendMessage(Component.text("/dn <닉네임>  →  L 여부 확인", NamedTextColor.AQUA));
-                case LOVER         -> p.sendMessage(Component.text("/dn <닉네임>  →  연인 지정 (1회)", NamedTextColor.AQUA));
+                case LOVER         -> p.sendMessage(Component.text("/dn <닉네임> <본명>  →  연인 지정 (본명 일치 시, 1회)", NamedTextColor.AQUA));
                 default -> {}
             }
         }
@@ -284,8 +284,9 @@ public class DeathNoteGame extends Game implements Listener {
                 event.setCancelled(true);
                 if (parts.length < 2) return;
                 String target = parts[1];
+                String realNameGuess = parts.length >= 3 ? parts[2] : null;
                 Bukkit.getScheduler().runTask(floatTrial.getInstance(),
-                    () -> handleNightAbility(event.getPlayer(), dnp, target));
+                    () -> handleNightAbility(event.getPlayer(), dnp, target, realNameGuess));
             }
             case "/vote" -> {
                 event.setCancelled(true);
@@ -327,7 +328,7 @@ public class DeathNoteGame extends Game implements Listener {
 
     // ─── 야간 능력 ────────────────────────────────────────────────
 
-    private void handleNightAbility(Player player, DNPlayer dnp, String targetName) {
+    private void handleNightAbility(Player player, DNPlayer dnp, String targetName, String realNameGuess) {
         if (phase != Phase.NIGHT || !dnp.isAlive()) return;
 
         if (dnp.isNightAbilityUsed()) {
@@ -360,6 +361,10 @@ public class DeathNoteGame extends Game implements Listener {
                 dnp.setNightAbilityUsed(true);
             }
             case DETECTIVE -> {
+                if (realNameGuess == null || !realNameGuess.equals(target.getRealName())) {
+                    player.sendMessage(Component.text("본명이 일치하지 않습니다.", NamedTextColor.RED));
+                    return;
+                }
                 player.sendMessage(Component.text(target.getPlayerName() + "의 직업: ", NamedTextColor.AQUA)
                     .append(Component.text(target.getRole().getDisplayName(), NamedTextColor.WHITE)));
                 dnp.setNightAbilityUsed(true);
@@ -373,6 +378,10 @@ public class DeathNoteGame extends Game implements Listener {
             case LOVER -> {
                 if (dnp.getLoverPartner() != null) {
                     player.sendMessage(Component.text("이미 연인이 있습니다.", NamedTextColor.RED));
+                    return;
+                }
+                if (realNameGuess == null || !realNameGuess.equals(target.getRealName())) {
+                    player.sendMessage(Component.text("본명이 일치하지 않습니다.", NamedTextColor.RED));
                     return;
                 }
                 dnp.setLoverPartner(target.getUuid());
@@ -448,12 +457,13 @@ public class DeathNoteGame extends Game implements Listener {
         voteActive = false;
 
         long yes = votes.values().stream().filter(v -> v).count();
+        long no = votes.size() - yes;
         long aliveCount = dnPlayers.values().stream().filter(DNPlayer::isAlive).count();
         DNPlayer target = dnPlayers.get(voteNominee);
         voteNominee = null;
         votes.clear();
 
-        broadcast(Component.text("투표 결과: 찬성 " + yes + " / 반대 " + (votes.size() - yes), NamedTextColor.YELLOW));
+        broadcast(Component.text("투표 결과: 찬성 " + yes + " / 반대 " + no, NamedTextColor.YELLOW));
 
         if (target != null && yes > aliveCount / 2) {
             broadcast(Component.text(target.getPlayerName() + "이(가) 처형되었습니다.", NamedTextColor.RED));
@@ -518,7 +528,7 @@ public class DeathNoteGame extends Game implements Listener {
 
         Component title = kiraWins
             ? Component.text("키라 팀 승리!", NamedTextColor.RED)
-            : Component.text("L / 시민 팀 승리!", NamedTextColor.AQUA);
+            : Component.text("시민 팀 승리!", NamedTextColor.AQUA);
 
         broadcast(Component.text("══ 역할 공개 ══", NamedTextColor.GOLD));
         for (DNPlayer dnp : dnPlayers.values()) {
