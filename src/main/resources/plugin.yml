@@ -6,3 +6,14 @@ author: qmftm
 main: me.qmftm.floatTrial.floatTrial
 api-version: '26.1.2'
 load: POSTWORLD
+
+commands:
+  ft:
+    description: FloatTrial 미니게임 커맨드
+    usage: /ft <start|stop|list> [게임]
+    permission: floattrial.admin
+
+permissions:
+  floattrial.admin:
+    description: FloatTrial 관리자 권한
+    default: op
