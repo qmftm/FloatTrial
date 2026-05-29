@@ -3,6 +3,7 @@ package me.qmftm.floatTrial.game;
 import me.qmftm.floatTrial.world.WorldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -38,7 +39,9 @@ public class GameManager {
 
         for (Player player : players) {
             savedLocations.put(player.getUniqueId(), player.getLocation());
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
             player.teleport(world.getSpawnLocation());
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
         }
 
         currentGame = game;
@@ -53,6 +56,7 @@ public class GameManager {
         if (gameWorld != null) {
             Location fallback = Bukkit.getWorlds().get(0).getSpawnLocation();
             for (Player player : List.copyOf(gameWorld.getPlayers())) {
+                player.playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.0f);
                 Location saved = savedLocations.remove(player.getUniqueId());
                 player.teleport(saved != null ? saved : fallback);
             }

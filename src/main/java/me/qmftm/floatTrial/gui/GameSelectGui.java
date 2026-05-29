@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -55,6 +56,7 @@ public class GameSelectGui implements InventoryHolder, Listener {
         }
 
         player.openInventory(inv);
+        player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 0.8f, 1.2f);
     }
 
     @EventHandler
@@ -69,11 +71,13 @@ public class GameSelectGui implements InventoryHolder, Listener {
         player.closeInventory();
 
         if (manager.getCurrentGame() != null && manager.getCurrentGame().isRunning()) {
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             player.sendMessage(Component.text("이미 게임이 진행 중입니다: ", NamedTextColor.RED)
                     .append(Component.text(manager.getCurrentGame().getDisplayName(), NamedTextColor.YELLOW)));
             return;
         }
 
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
         manager.start(gameId, new ArrayList<>(Bukkit.getOnlinePlayers()));
     }
 
