@@ -4,6 +4,7 @@ import me.qmftm.floatTrial.floatTrial;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.WorldType;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -34,7 +35,13 @@ public class WorldManager {
 
         World world = Bukkit.getWorld(worldName);
         if (world != null) return world;
-        return new WorldCreator(worldName).createWorld();
+
+        File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
+        WorldCreator creator = new WorldCreator(worldName);
+        if (!worldFolder.exists()) {
+            creator.type(WorldType.FLAT);
+        }
+        return creator.createWorld();
     }
 
     private boolean hasResourceWorld(String worldName) {

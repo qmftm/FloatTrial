@@ -1,18 +1,23 @@
 package me.qmftm.floatTrial.game;
 
 import me.qmftm.floatTrial.world.WorldManager;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class GameManager {
 
     private final WorldManager worldManager;
     private final Map<String, Game> registry = new LinkedHashMap<>();
+    private final Map<UUID, Location> savedLocations = new HashMap<>();
     private Game currentGame = null;
 
     public GameManager(WorldManager worldManager) {
@@ -32,6 +37,7 @@ public class GameManager {
         if (world == null) return false;
 
         for (Player player : players) {
+            savedLocations.put(player.getUniqueId(), player.getLocation());
             player.teleport(world.getSpawnLocation());
         }
 
@@ -42,8 +48,19 @@ public class GameManager {
 
     public void stop() {
         if (currentGame == null || !currentGame.isRunning()) return;
+
+        World gameWorld = currentGame.getWorld();
+        if (gameWorld != null) {
+            Location fallback = Bukkit.getWorlds().get(0).getSpawnLocation();
+            for (Player player : List.copyOf(gameWorld.getPlayers())) {
+                Location saved = savedLocations.remove(player.getUniqueId());
+                player.teleport(saved != null ? saved : fallback);
+            }
+        }
+
         currentGame.end();
         currentGame = null;
+        savedLocations.clear();
     }
 
     public Game getCurrentGame() {
