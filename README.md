@@ -1,0 +1,2 @@
+# FloatTrial
+Multiple minigame plugins
