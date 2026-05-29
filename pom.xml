@@ -38,6 +38,9 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <outputFile>D:\1.Song(삭제하지마세요)\Documents\.files\server\.26.1.2 [minigame]\plugins\${project.name}-${project.version}.jar</outputFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
